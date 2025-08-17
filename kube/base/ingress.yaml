@@ -1,0 +1,16 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: greet-ingress
+spec:
+  rules:
+    - host: unleash.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: unleash-demo
+                port:
+                  number: 80
