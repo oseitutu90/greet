@@ -79,6 +79,13 @@ public class UnleashConfiguration {
             return isEnabled(toggleName);
         }
 
+        /**
+         * This method is not used in local development
+         * @param s
+         * @param unleashContext
+         * @param biPredicate
+         * @return
+         */
         @Override
         public boolean isEnabled(String s, UnleashContext unleashContext, BiPredicate<String, UnleashContext> biPredicate) {
             return false;
