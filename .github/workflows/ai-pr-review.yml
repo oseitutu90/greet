@@ -22,7 +22,7 @@ jobs:
           node-version: '20'
 
       - name: Install deps
-        run: npm i @google/generative-ai @actions/core @actions/github
+        run: npm i @google/generative-ai @actions/core @actions/github jsonrepair
 
       - name: Run AI review
         env:

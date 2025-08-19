@@ -1,6 +1,7 @@
 const core = require("@actions/core");
 const github = require("@actions/github");
 const { GoogleGenerativeAI, SchemaType } = require("@google/generative-ai");
+const { jsonrepair } = require("jsonrepair");
 
 async function run() {
     const token = process.env.GITHUB_TOKEN;
@@ -69,8 +70,8 @@ async function run() {
     };
 
     const model = genAI.getGenerativeModel({
-        // Choose the model you have quota for:
-        model: "gemini-2.5-flash", // or "gemini-1.5-pro-002"
+        // Using gemini-1.5-pro-002 for better structured output support
+        model: "gemini-1.5-pro-002",
         systemInstruction:
             "You are a strict senior code reviewer. Return ONLY valid JSON of shape " +
             "{summary:string, comments:[{filename:string,line:number,body:string}]}. " +
@@ -141,12 +142,36 @@ async function run() {
         throw lastError;
     }
 
-    function safeParseJson(maybe) {
-        try { return JSON.parse(maybe); } catch {}
-        // Fallback: grab the first {...} block
-        const m = maybe.match(/\{[\s\S]*\}$/m);
-        if (m) {
-            try { return JSON.parse(m[0]); } catch {}
+    function extractLikelyJsonBlocks(s) {
+        // Prefer fenced ```json ... ```; fall back to first {...} that parses when repaired
+        const fences = Array.from(s.matchAll(/```(?:json)?\s*([\s\S]*?)```/gi)).map(m => m[1].trim());
+        return fences.length ? fences : [s];
+    }
+
+    function tryParseJsonStrict(s) {
+        try { return JSON.parse(s); } catch { return null; }
+    }
+
+    function tryParseJsonWithRepair(s) {
+        try { return JSON.parse(jsonrepair(s)); } catch { return null; }
+    }
+
+    function parseModelOutputToObject(s) {
+        // 1) direct strict parse
+        let obj = tryParseJsonStrict(s);
+        if (obj) return obj;
+
+        // 2) look for fenced blocks
+        for (const block of extractLikelyJsonBlocks(s)) {
+            obj = tryParseJsonStrict(block) || tryParseJsonWithRepair(block);
+            if (obj) return obj;
+        }
+
+        // 3) last-chance: find the first '{' and attempt repair on substring
+        const firstBrace = s.indexOf("{");
+        if (firstBrace !== -1) {
+            const repaired = tryParseJsonWithRepair(s.slice(firstBrace));
+            if (repaired) return repaired;
         }
         return null;
     }
@@ -160,7 +185,9 @@ async function run() {
         tokensUsed = resp.usage?.total_tokens ?? null;
         if (tokensUsed != null) core.info(`Gemini tokens used (total): ${tokensUsed}`);
 
-        const parsed = safeParseJson(resp.choices[0].message.content);
+        const raw = resp.choices?.[0]?.message?.content ?? "";
+        core.info(`Gemini raw (first 400): ${raw.slice(0, 400).replace(/\s+/g,' ')}`);
+        const parsed = parseModelOutputToObject(raw);
         out = parsed ?? { summary: "AI output could not be parsed as JSON.", comments: [] };
     } catch (err) {
         const status = err?.status || err?.response?.status;
