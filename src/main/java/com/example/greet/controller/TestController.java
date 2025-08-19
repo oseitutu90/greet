@@ -21,7 +21,12 @@ public class TestController {
         // Bug: no bounds checking
         return items.get(index);
     }
-    
+
+    /**
+     * Adds the specified item to the list.
+     * @param command
+     * @return
+     */
     @PostMapping("/execute")
     public String executeCommand(@RequestBody String command) {
         // Security: command injection vulnerability
