@@ -62,7 +62,7 @@ async function run() {
 
   // 2) Ask the model for a structured review
   const genAI = new GoogleGenerativeAI(googleApiKey); // Changed client instantiation
-  const model = genAI.getGenerativeModel({ model: "gemini-1.0-pro" }); // Changed model selection
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); // Changed model selection
 
   const systemMsg =
     "You are a strict senior code reviewer. Return valid JSON: " +
