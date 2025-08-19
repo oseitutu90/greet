@@ -1,0 +1,60 @@
+spring:
+  application:
+    name: greet
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://localhost:27017/demo}
+
+unleash:
+  app-name: my-spring-app
+  instance-id: ${UNLEASH_INSTANCE_ID:default-instance}
+  api-url: ${UNLEASH_API_URL:http://localhost:4242/api}
+  authorization: ${UNLEASH_AUTHORIZATION}
+UNLEASH_AUTHORIZATION: "*:development.828bf6a0278c7f7770567a78750e750cd87d98d8c8369c945e37ea40"
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+unleash:
+  enabled: ${UNLEASH_ENABLED:true}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # Disable MongoDB auto-configuration for local development
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.mongo.MongoAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.mongo.MongoDataAutoConfiguration
+
+# Local development settings - no external dependencies
+unleash:
+  enabled: false  # Disable Unleash for local development
+  app-name: my-spring-app-local
+  instance-id: local-instance
+  api-url: http://localhost:4242/api  # Won't be used when disabled
+
+---
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb://mongodb:27017/demo}
+
+# Docker environment settings - all dependencies containerized
+unleash:
+  enabled: ${UNLEASH_ENABLED:true}
+  app-name: my-spring-app-docker
+  instance-id: ${UNLEASH_INSTANCE_ID:docker-instance}
+  api-url: ${UNLEASH_API_URL:http://unleash:4242/api}
+  authorization: ${UNLEASH_AUTHORIZATION}
