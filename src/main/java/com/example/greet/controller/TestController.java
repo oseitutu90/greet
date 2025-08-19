@@ -9,7 +9,13 @@ import java.util.ArrayList;
 public class TestController {
     
     private List<String> items = new ArrayList<>();
-    
+
+    /**
+     * Retrieves the item from the list at the specified index.
+     *
+     * @param index the index of the item in the list to retrieve
+     * @return the item at the specified index
+     */
     @GetMapping("/items/{index}")
     public String getItem(@PathVariable int index) {
         // Bug: no bounds checking
