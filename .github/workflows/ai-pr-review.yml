@@ -22,10 +22,10 @@ jobs:
           node-version: '20'
 
       - name: Install deps
-        run: npm i openai @actions/core @actions/github
+        run: npm i @google/generative-ai @actions/core @actions/github
 
       - name: Run AI review
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }} # Changed from OPENAI_API_KEY
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/ai_pr_review.js
