@@ -45,7 +45,7 @@ async function run() {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const resp = await client.chat.completions.create({
-          model: "gpt-4o-mini",
+          model: "gpt-5-nano",
           temperature: 0,
           response_format: { type: "json_object" },
           messages
